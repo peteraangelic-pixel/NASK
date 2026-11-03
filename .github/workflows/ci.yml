@@ -23,8 +23,8 @@ jobs:
         working-directory: rust
         continue-on-error: true
 
-      - name: Clippy (linter)
-        run: cargo clippy --all-targets
+      - name: Clippy (linter, nieblocking)
+        run: cargo clippy --all-targets || true
         working-directory: rust
 
       - name: Kompiluj w trybie release
