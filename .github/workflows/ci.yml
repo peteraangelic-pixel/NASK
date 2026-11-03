@@ -28,7 +28,7 @@ jobs:
         working-directory: rust
 
       - name: Sprawdź kompilację (cargo check)
-        run: cargo check --all-targets
+        run: cargo check
         working-directory: rust
 
       - name: Uruchom testy
