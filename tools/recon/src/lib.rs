@@ -36,10 +36,12 @@ pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
                 literals.dedup();
                 // Generic FormData support occurs in polyfills and is not an upload control.
                 // Even explicit controls remain surface hints, not proof of live functionality.
-                let upload = file_control.is_match(body);
-                let auth = password_control.is_match(body);
+                let file_mention = file_control.is_match(body);
+                let password_mention = password_control.is_match(body);
                 let multipart = lower.contains("formdata");
                 let support = support_script.is_match(doc["source_url"].as_str().unwrap_or(""));
+                let upload = file_mention && !support;
+                let auth = password_mention && !support;
                 let api_count = literals.iter().filter(|s| api_route.is_match(s)).count();
                 let forms = lower.matches("<form").count();
                 // An identifier pattern alone does not establish a secret or a vulnerability.
@@ -60,6 +62,7 @@ pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
                 "tier":doc["tier"],"sha256":doc["sha256"],"upload_surface":upload,
                 "authentication_surface":auth,"html_forms":forms,"route_literals":literals,
                 "multipart_capability_mention":multipart,"support_script_hint":support,
+                "file_control_mention":file_mention,"password_control_mention":password_mention,
                 "api_route_literal_count":api_count,
                 "indicators":indicators,"triage_score":score,
                 "verdict":"surface_only_not_a_confirmed_vulnerability"})
@@ -134,12 +137,14 @@ mod tests {
     #[test]
     fn generic_browser_capability_is_not_an_application_upload() {
         let input = json!([
-            {"source_url":"https://a.invalid/modernizr-custom.js", "body":"new FormData(); fetch('/api/capabilities')"},
+            {"source_url":"https://a.invalid/modernizr-custom.js", "body":"new FormData(); input.type='file'; input.type='password'; fetch('/api/capabilities')"},
             {"source_url":"https://a.invalid/page.js", "body":"new FormData(); fetch('/static/image.png')"},
             {"source_url":"https://a.invalid/", "body":"<form><input type = 'file'><input type=\"password\"></form>"}
         ]).to_string();
         let rows = analyze(&input, 2).unwrap()["documents"].clone();
         assert_eq!(rows[0]["upload_surface"], false);
+        assert_eq!(rows[0]["authentication_surface"], false);
+        assert_eq!(rows[0]["file_control_mention"], true);
         assert_eq!(rows[0]["multipart_capability_mention"], true);
         assert_eq!(rows[0]["triage_score"], 0);
         assert_eq!(rows[1]["triage_score"], 0);
