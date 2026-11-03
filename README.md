@@ -9,11 +9,12 @@ Rekomendowany pierwszy kierunek: **program NASK**, następnie **CERT Polska**. R
 - [Aktualny następny etap po ocenie materiałów z Dysku](research/nastepny-etap-2026-11-03.md)
 - [NASKLab: Python FFI + Rust/Rayon, kolejka wielu programów](tools/recon/README.md)
 - [Transfer metod z Riemann, ARC i Ctrader](research/transfer-actions-2026-11-03.md)
+- [Wynik pilota Actions i dalsza kolejka badań](research/pilot-actions-2026-11-03.md)
 - [Zapis warunków i zakresów w JSON](programs/2026-11.json)
 - [Szablon zgłoszenia](templates/zgloszenie.md)
 - `research/sources/`: pobrane publiczne regulaminy PDF i ich ekstrakcje tekstowe; adresy i SHA-256 zapisano w JSON.
 
-Dotychczas wykonano analizę publicznych zasad, nie skanowanie podatności. Zwykłe otwarcie stron eObieg i BIP Władysławowa nie powiodło się w używanej przeglądarce; nie jest to ustalenie o ich bezpieczeństwie ani dostępności z innych sieci.
+Wykonano analizę publicznych zasad oraz pilot kolektora przez Actions: 48 odczytów publicznych stron i wskazanych skryptów, 24 hosty w czterech programach. To rozpoznanie powierzchni aplikacji; potwierdzonych podatności: **0**. Szczegóły, ograniczenia i identyfikatory przebiegów znajdują się w raporcie pilota.
 
 NASKLab implementuje kolejkę rozpoznania wielu programów i analizę lokalną w Rust/Rayon wywoływaną z Pythona. Część sieciowa ma wspólny ogranicznik tempa. Kontrolowane rozpoznanie i analiza wskazują powierzchnie do badań; nie stanowią automatycznego potwierdzenia podatności. Starsze plany w `research/` opisują stan z momentu ich sporządzenia.
 
