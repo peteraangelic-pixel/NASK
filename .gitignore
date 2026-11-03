@@ -1,0 +1,15 @@
+/target/
+/tmp/
+/private/
+/evidence/
+/captures/
+/reports/
+.env
+.env.*
+*.har
+*.pcap
+*.pcapng
+*.cookies
+cookies.txt
+*.pem
+*.key
