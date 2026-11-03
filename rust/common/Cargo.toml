@@ -1,0 +1,8 @@
+[package]
+name = "common"
+description = "Wspólne moduły: guard zakresu (scope §5 regulaminu) i rate limiter 5 req/s"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+# common nie ma zewnętrznych zależności — czysty std

@@ -2,14 +2,16 @@
 // Użycie: ffuzz --url <URL z FUZZ> --wordlist <plik> [opcje]
 //
 // Przykłady:
-//   ffuzz --url "https://nask.pl/FUZZ" --wordlist paths.txt
-//   ffuzz --url "https://gov.pl/api/v1/users?id=FUZZ" --wordlist ids.txt --status 200,201
-//   ffuzz --url "https://mszyfr.gov.pl/search?q=FUZZ" --wordlist payloads.txt --method GET --status 200,302
+//   ffuzz --url "https://oad.nask.pl/FUZZ" --wordlist paths.txt
+//   ffuzz --url "https://zglos-dezinformacje.nask.pl/api/FUZZ" --wordlist endpoints.txt --method GET --status 200,403
 //
-// Wszystkie żądania HTTP idą równolegle (Rayon + ureq). Dla każdego słowa ze
-// słownika podmieniamy "FUZZ" w URL i sprawdzamy kod odpowiedzi.
+// Wszystkie żądania HTTP idą równolegle (Rayon + ureq) ALE z WSPÓLNYM
+// rate limiterem 5 req/s zgodnie z §6 pkt 2 regulaminu NASK.
+// Guard zakresu §5 — host z URL musi być na liście dozwolonych.
 //
 // UWAGA: Używaj TYLKO przeciwko celom w scope hack.cert.pl. Nie rób DoS.
+// Przy 5 req/s i słownikiem 1000 słów = ok. 3,5 minuty — celowo wolno,
+// żeby nie naruszyć regulaminu.
 
 #![allow(clippy::all)]
 
@@ -18,7 +20,10 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
 use std::time::{Duration, Instant};
 
+use common::rate_limit::RateLimiter;
+use common::scope::is_in_scope;
 use rayon::prelude::*;
+use ureq;
 
 #[derive(Debug, Clone)]
 struct Args {
@@ -27,6 +32,7 @@ struct Args {
     method: String,
     statuses: Vec<u16>,
     threads: usize,
+    rps: u32,
 }
 
 fn parse_args() -> Result<Args, String> {
@@ -36,6 +42,7 @@ fn parse_args() -> Result<Args, String> {
     let mut method = "GET".to_string();
     let mut statuses: Vec<u16> = vec![200, 301, 302, 307, 403];
     let mut threads = num_cpus();
+    let mut rps = 5u32;
 
     let mut i = 1;
     while i < args.len() {
@@ -74,6 +81,19 @@ fn parse_args() -> Result<Args, String> {
                     .parse::<usize>()
                     .map_err(|_| "--threads: niepoprawna liczba")?;
             }
+            "--rps" => {
+                i += 1;
+                rps = args
+                    .get(i)
+                    .cloned()
+                    .ok_or("--rps wymaga wartości")?
+                    .parse::<u32>()
+                    .map_err(|_| "--rps: niepoprawna liczba")?;
+                if rps > 5 {
+                    eprintln!("ostrzeżenie: regulamin max 5 req/s, ustawiam 5");
+                    rps = 5;
+                }
+            }
             _ => return Err(format!("nieznana opcja: {}", args[i])),
         }
         i += 1;
@@ -92,6 +112,7 @@ fn parse_args() -> Result<Args, String> {
         method,
         statuses,
         threads,
+        rps,
     })
 }
 
@@ -110,20 +131,40 @@ fn status_match(status: u16, wanted: &[u16]) -> bool {
     wanted.iter().any(|&s| s == status) || (wanted.is_empty() && status < 400)
 }
 
-fn fuzz_one(word: &str, args: &Args) -> Option<(String, u16, usize, String)> {
-    let target = args.url.replace("FUZZ", word);
-    let timeout = Duration::from_secs(8);
+/// Wyodrębnia host z URL dla guardu zakresu.
+fn extract_host(url: &str) -> Option<String> {
+    let rest = url.strip_prefix("http://").or_else(|| url.strip_prefix("https://"))?;
+    let host_end = rest.find('/').unwrap_or(rest.len());
+    Some(rest[..host_end].to_string())
+}
 
+/// Buduje ureq::Agent z timeoutem connect (poprawne API dla ureq 2.x).
+fn build_agent(timeout: Duration) -> ureq::Agent {
+    ureq::AgentBuilder::new()
+        .timeout_connect(timeout)
+        .build()
+}
+
+fn fuzz_one(word: &str, args: &Args, agent: &ureq::Agent, limiter: &RateLimiter) -> Option<(String, u16, usize, String)> {
+    let target = args.url.replace("FUZZ", word);
+
+    // Guard zakresu §5 — sprawdź host PRZED żądaniem.
+    let host = match extract_host(&target) {
+        Some(h) => h,
+        None => return None,
+    };
+    if !is_in_scope(&host) {
+        return None;
+    }
+
+    // Rate limiter §6 pkt 2 — max 5 req/s.
+    limiter.wait();
+
+    let timeout = Duration::from_secs(8);
     let result = match args.method.to_uppercase().as_str() {
-        "GET" => ureq::get(&target)
-            .timeout_connect(timeout)
-            .call(),
-        "POST" => ureq::post(&target)
-            .timeout_connect(timeout)
-            .send_string("application/json", "{}"),
-        "HEAD" => ureq::head(&target)
-            .timeout_connect(timeout)
-            .call(),
+        "GET" => agent.get(&target).call(),
+        "POST" => agent.post(&target).send_string("application/json", "{}"),
+        "HEAD" => agent.head(&target).call(),
         _ => return None,
     };
 
@@ -150,7 +191,7 @@ fn main() {
                 "użycie: ffuzz --url <URL/FUZZ> --wordlist <plik>",
             );
             eprintln!(
-                "       [--method GET|POST|HEAD] [--status 200,403] [--threads N]",
+                "       [--method GET|POST|HEAD] [--status 200,403] [--threads N] [--rps 5]",
             );
             std::process::exit(2);
         }
@@ -169,17 +210,21 @@ fn main() {
         .build_global()
         .expect("nie można zbudować puli Rayon");
 
+    let limiter = RateLimiter::new(args.rps);
+    let agent = build_agent(Duration::from_secs(8));
+
     eprintln!(
-        "[+] fuzzowanie {} wątkami, {} słów, cel: {}",
+        "[+] fuzzowanie {} wątkami, {} słów, limit {} req/s, cel: {}",
         args.threads,
         words.len(),
+        args.rps,
         args.url.replace("FUZZ", "<FUZZ>")
     );
 
     let start = Instant::now();
     let mut found: Vec<(String, u16, usize, String)> = words
         .par_iter()
-        .filter_map(|word| fuzz_one(word, &args))
+        .filter_map(|word| fuzz_one(word, &args, &agent, &limiter))
         .collect();
 
     found.sort_by(|a, b| a.1.cmp(&b.1).then_with(|| a.0.cmp(&b.0)));

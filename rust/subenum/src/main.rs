@@ -8,6 +8,7 @@
 // Idealne na Ryzen 9 5950X (16 rdzeni / 32 wątki).
 //
 // UWAGA: Używaj TYLKO przeciwko domenom w scope programu na hack.cert.pl.
+// Guard zakresu sprawdza, czy domena nadrzędna jest na liście §5 regulaminu.
 
 #![allow(clippy::all)]
 
@@ -17,6 +18,7 @@ use std::io::{self, BufRead, BufReader, Write};
 use std::net::ToSocketAddrs;
 use std::time::Instant;
 
+use common::scope::is_in_scope;
 use rayon::prelude::*;
 
 fn read_wordlist(path: &str) -> io::Result<Vec<String>> {
@@ -43,11 +45,22 @@ fn main() -> io::Result<()> {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
         eprintln!("użycie: subenum <domena> <plik_slownik> [plik_wyjsciowy]");
-        eprintln!("przykład: subenum nask.pl subdomains.txt results.txt");
+        eprintln!("przykład: subenum nask.pl subs.txt wyniki.txt");
         std::process::exit(2);
     }
 
     let domain = &args[1];
+
+    // Guard zakresu §5 — domena nadrzędna musi być na liście dozwolonych hostów.
+    if !is_in_scope(domain) {
+        eprintln!("BŁĄD: domena '{}' nie znajduje się w zakresie §5 regulaminu NASK.", domain);
+        eprintln!("Dozwolone hosty:");
+        for h in common::scope::allowed_hosts() {
+            eprintln!("  - {}", h);
+        }
+        std::process::exit(1);
+    }
+
     let wordlist_path = &args[2];
     let output_path = args.get(3).map(|s| s.as_str());
 

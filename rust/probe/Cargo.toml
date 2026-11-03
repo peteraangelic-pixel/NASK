@@ -1,9 +1,10 @@
 [package]
 name = "probe"
-description = "Równoległe sondowanie HTTP i fingerprint technologii (Rayon + ureq)"
+description = "Równoległe sondowanie HTTP i fingerprint technologii (Rayon + ureq + TLS)"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 rayon = { workspace = true }
 ureq = { workspace = true }
+common = { workspace = true }

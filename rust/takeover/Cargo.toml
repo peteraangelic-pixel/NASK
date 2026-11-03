@@ -1,9 +1,10 @@
 [package]
 name = "takeover"
-description = "Skaner potencjalnego subdomain takeover (HTTP fingerprint connues usług) w Rust + Rayon"
+description = "Skaner potencjalnego subdomain takeover (HTTP fingerprint connues usług) w Rust + Rayon + rate limit"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 rayon = { workspace = true }
 ureq = { workspace = true }
+common = { workspace = true }

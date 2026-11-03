@@ -1,6 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
+    "common",
     "subenum",
     "ffuzz",
     "probe",
@@ -9,4 +10,5 @@ members = [
 
 [workspace.dependencies]
 rayon = "1.10"
-ureq = { version = "2.11", default-features = false }
+ureq = { version = "2.11", default-features = false, features = ["tls"] }
+common = { path = "common" }

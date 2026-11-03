@@ -1,5 +1,5 @@
 // takeover — skaner potencjalnego subdomain takeover.
-// Użycie: cat subdomeny.txt | takeover [--threads N]
+// Użycie: cat subdomeny.txt | takeover [--threads N] [--rps 5]
 //
 // Dla każdej subdomeny (po jednej w linii ze stdin) wykonuje żądanie HTTP i
 // sprawdza odpowiedź pod kątem sygnałów conocidas usług zewnętrznych
@@ -7,30 +7,35 @@
 // na nieprzypisaną (np. GitHub Pages 404, Heroku "No such app"), zgłasza
 // potencjalny takeover do ręcznej weryfikacji.
 //
-// Równoległość przez Rayon — wszystkie rdzenie (Ryzen 9 5950X: 16 rdzeni /
-// 32 wątki).
+// Równoległość przez Rayon, ale z WSPÓLNYM rate limiterem 5 req/s
+// zgodnie z §6 pkt 2 regulaminu NASK.
+// Guard zakresu §5 — tylko hosty na liście dozwolonych.
 //
 // UWAGA: Używaj TYLKO przeciwko domenom w scope hack.cert.pl.
 // Potencjalne takeover zawsze weryfikuj ręcznie (np. dig CNAME <subdomena>)
 // przed zgłoszeniem na hack.cert.pl.
+// §8 poz. 11.2: subdomain takeover BEZ działającego PoC przejścia jest wykluczony.
 
-use rayon::prelude::*;
+#![allow(clippy::all)]
+
 use std::env;
 use std::io::{self, BufRead, Write};
 use std::time::{Duration, Instant};
 
+use common::rate_limit::RateLimiter;
+use common::scope::is_in_scope;
+use rayon::prelude::*;
 use ureq;
 
 struct Args {
     threads: usize,
+    rps: u32,
 }
 
 fn parse_args() -> Args {
     let args: Vec<String> = env::args().collect();
-    let mut threads = std::thread::available_parallelism()
-        .map(|n| n.get())
-        .unwrap_or(1)
-        .max(1);
+    let mut threads = available_parallelism();
+    let mut rps = 5u32;
 
     let mut i = 1;
     while i < args.len() {
@@ -39,11 +44,24 @@ fn parse_args() -> Args {
             if let Some(v) = args.get(i).and_then(|s| s.parse::<usize>().ok()) {
                 threads = v;
             }
+        } else if args[i] == "--rps" {
+            i += 1;
+            rps = args.get(i).and_then(|s| s.parse::<u32>().ok()).unwrap_or(5);
+            if rps > 5 {
+                rps = 5;
+            }
         }
         i += 1;
     }
 
-    Args { threads }
+    Args { threads, rps }
+}
+
+fn available_parallelism() -> usize {
+    std::thread::available_parallelism()
+        .map(|n| n.get())
+        .unwrap_or(1)
+        .max(1)
 }
 
 struct HostResult {
@@ -55,13 +73,25 @@ struct HostResult {
 }
 
 /// Sprawdza jedną subdomenę pod kątem sygnałów takeover.
-fn check_host(host: &str) -> HostResult {
+fn check_host(host: &str, agent: &ureq::Agent, limiter: &RateLimiter) -> HostResult {
+    // Guard zakresu §5.
+    if !is_in_scope(host) {
+        return HostResult {
+            host: host.to_string(),
+            status: None,
+            server: String::new(),
+            service: String::new(),
+            potential: false,
+        };
+    }
+
+    // Rate limiter §6 pkt 2.
+    limiter.wait();
+
     let url = format!("http://{}", host);
     let timeout = Duration::from_secs(8);
 
-    let response = ureq::get(&url)
-        .timeout_connect(timeout)
-        .call();
+    let response = agent.get(&url).call();
 
     let response = match response {
         Ok(r) => r,
@@ -220,12 +250,17 @@ fn main() {
         .map(|line| line.trim().to_string())
         .collect();
 
-    eprintln!("[+] skanowanie {} subdomen na {} wątkach", hosts.len(), args.threads);
+    eprintln!("[+] skanowanie {} subdomen na {} wątkach, limit {} req/s", hosts.len(), args.threads, args.rps);
     let start = Instant::now();
+
+    let limiter = RateLimiter::new(args.rps);
+    let agent = ureq::AgentBuilder::new()
+        .timeout_connect(Duration::from_secs(8))
+        .build();
 
     let results: Vec<HostResult> = hosts
         .par_iter()
-        .map(|host| check_host(host))
+        .map(|host| check_host(host, &agent, &limiter))
         .collect();
 
     let mut potential: Vec<&HostResult> = results

@@ -1,9 +1,10 @@
 [package]
 name = "ffuzz"
-description = "Równoległy fuzzer ścieżek i parametrów HTTP (Rayon + ureq) — odkrywanie ukrytych endpointów API"
+description = "Równoległy fuzzer ścieżek i parametrów HTTP (Rayon + ureq + TLS + rate limit)"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
 rayon = { workspace = true }
 ureq = { workspace = true }
+common = { workspace = true }
