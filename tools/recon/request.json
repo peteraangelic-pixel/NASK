@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "id": "surface-pilot-20261103",
+  "operation": "public-surface-validation",
+  "programs": ["nask", "cert-polska", "gov-pl", "wladyslawowo", "mszyfr"],
+  "rps": 1,
+  "requests": 48,
+  "workers": 2
+}

@@ -1,0 +1,46 @@
+name: Lab public-surface integration
+
+on:
+  push:
+    branches: [codex/multi-program-lab-20261103]
+    paths: ["tools/recon/request.json", ".github/workflows/lab-campaign.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nasklab-network-single-coordinator
+  cancel-in-progress: false
+
+jobs:
+  integration:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[lab-surface]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NASKLAB_OPERATION: public-surface-validation
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install cryptography==50.0.2
+      - name: Validate controls before integration
+        run: |
+          python -m unittest discover -s tools/recon/tests -p 'test_*.py' -v
+          cargo test --locked --manifest-path tools/recon/Cargo.toml
+          cargo build --locked --release --manifest-path tools/recon/Cargo.toml
+          python tools/recon/tests/ffi_smoke.py --library tools/recon/target/release/libnasklab.so
+      - name: Bounded public-surface integration of this project's collector
+        run: python tools/recon/python/campaign.py --request tools/recon/request.json --library tools/recon/target/release/libnasklab.so --recipient tools/recon/recipient.pub
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-evidence-${{ github.run_id }}
+          path: |
+            private/campaign.enc
+            private/public-summary.json
+          if-no-files-found: error
+          retention-days: 7

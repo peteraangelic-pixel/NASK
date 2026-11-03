@@ -1,0 +1,48 @@
+name: Lab offline CI
+
+on:
+  push:
+    branches: [codex/multi-program-lab-20261103]
+    paths: ["tools/recon/**", "programs/**", ".github/workflows/lab-ci.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lab-offline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            library: tools/recon/target/release/libnasklab.so
+          - os: windows-latest
+            library: tools/recon/target/release/nasklab.dll
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Python controls on synthetic and loopback fixtures
+        run: |
+          python -m pip install cryptography==50.0.2
+          python -m unittest discover -s tools/recon/tests -p "test_*.py" -v
+      - name: Rust unit tests
+        run: cargo test --locked --manifest-path tools/recon/Cargo.toml
+      - name: Build native library
+        run: cargo build --locked --release --manifest-path tools/recon/Cargo.toml
+      - name: Exercise actual Python FFI
+        run: python tools/recon/tests/ffi_smoke.py --library "${{ matrix.library }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.os }}
+          path: ${{ matrix.library }}
+          retention-days: 7
+          if-no-files-found: error

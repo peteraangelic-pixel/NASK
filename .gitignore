@@ -1,4 +1,6 @@
 /target/
+**/target/
+**/__pycache__/
 /tmp/
 /private/
 /evidence/
