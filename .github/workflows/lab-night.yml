@@ -1,0 +1,46 @@
+name: Lab bounded exposure checks
+
+on:
+  push:
+    branches: [codex/multi-program-lab-20261103]
+    paths: ["tools/recon/night-request.json", ".github/workflows/lab-night.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nasklab-network-single-coordinator
+  cancel-in-progress: false
+
+jobs:
+  bounded-check:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[lab-night]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      NASKLAB_OPERATION: bounded-file-exposure-v1
+      PYTHONUTF8: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install cryptography==50.0.2
+      - name: Test controls and native analysis on synthetic fixtures
+        run: |
+          python -m unittest discover -s tools/recon/tests -p 'test_*.py' -v
+          cargo test --locked --manifest-path tools/recon/Cargo.toml
+          cargo build --locked --release --manifest-path tools/recon/Cargo.toml
+          python tools/recon/tests/ffi_smoke.py --library tools/recon/target/release/libnasklab.so
+      - name: Run the fixed operation once, including live terms verification
+        run: timeout --signal=INT --kill-after=30s 15m python tools/recon/python/night.py --request tools/recon/night-request.json --library tools/recon/target/release/libnasklab.so --recipient tools/recon/recipient.pub --execute
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lab-night-${{ github.run_id }}
+          path: |
+            private/night/campaign.enc
+            private/night/public-summary.json
+          retention-days: 7
+          if-no-files-found: error

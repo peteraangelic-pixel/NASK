@@ -24,6 +24,14 @@ assert not result["documents"][2]["upload_surface"]
 assert result["documents"][2]["multipart_capability_mention"]
 assert result["documents"][2]["file_control_mention"]
 assert result["documents"][2]["triage_score"] == 0
+exposure = [
+    {"origin":"https://a.invalid", "check":"control-a", "body":"missing", "status":404, "error":None},
+    {"origin":"https://a.invalid", "check":"control-b", "body":"missing", "status":404, "error":None},
+    {"origin":"https://a.invalid", "check":"git-head", "body":"ref: refs/heads/main", "status":200, "error":None},
+]
+proof = lab.analyze(exposure, args.library, 2)
+assert proof["documents"][2]["exposure_review"]["verdict"] == "candidate_requires_manual_impact_review"
+assert proof["documents"][2]["exposure_review"]["confirmed"] is False
 try:
     lab.analyze(documents, args.library, 0)
 except ValueError:

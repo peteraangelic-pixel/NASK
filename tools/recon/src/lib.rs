@@ -3,6 +3,7 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde_json::{json, Value};
 use std::ffi::{c_char, CString};
+mod exposure;
 
 pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
     let documents: Vec<Value> = serde_json::from_str(input).map_err(|e| e.to_string())?;
@@ -64,7 +65,7 @@ pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
                 "multipart_capability_mention":multipart,"support_script_hint":support,
                 "file_control_mention":file_mention,"password_control_mention":password_mention,
                 "api_route_literal_count":api_count,
-                "indicators":indicators,"triage_score":score,
+                "indicators":indicators,"triage_score":score,"exposure_review":exposure::review(doc,&documents),
                 "verdict":"surface_only_not_a_confirmed_vulnerability"})
             })
             .collect()

@@ -10,6 +10,7 @@ Rekomendowany pierwszy kierunek: **program NASK**, następnie **CERT Polska**. R
 - [NASKLab: Python FFI + Rust/Rayon, kolejka wielu programów](tools/recon/README.md)
 - [Transfer metod z Riemann, ARC i Ctrader](research/transfer-actions-2026-11-03.md)
 - [Wynik pilota Actions i dalsza kolejka badań](research/pilot-actions-2026-11-03.md)
+- [Jednorazowy przebieg nocny: ekspozycja plików i kontrole catch-all](research/night-operation-2026-11-03.md)
 - [Zapis warunków i zakresów w JSON](programs/2026-11.json)
 - [Szablon zgłoszenia](templates/zgloszenie.md)
 - `research/sources/`: pobrane publiczne regulaminy PDF i ich ekstrakcje tekstowe; adresy i SHA-256 zapisano w JSON.
