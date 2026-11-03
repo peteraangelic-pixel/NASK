@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "id": "night-exposure-20261103-v1",
+  "operation": "bounded-file-exposure-v1",
+  "programs": ["nask", "cert-polska", "gov-pl", "wladyslawowo"],
+  "rps": 1,
+  "max_requests_including_terms": 100,
+  "max_body_bytes": 65536,
+  "deadline_seconds": 600
+}
