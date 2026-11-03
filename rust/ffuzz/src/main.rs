@@ -17,7 +17,6 @@ use std::io::{self, BufRead, BufReader, Write};
 use std::time::{Duration, Instant};
 
 use rayon::prelude::*;
-use ureq;
 
 #[derive(Debug, Clone)]
 struct Args {
@@ -146,7 +145,10 @@ fn main() {
         Err(e) => {
             eprintln!("błąd: {}", e);
             eprintln!(
-                "użycie: ffuzz --url <URL/FUZZ> --wordlist <plik> [--method GET|POST|HEAD] [--status 200,403] [--threads N]"
+                "użycie: ffuzz --url <URL/FUZZ> --wordlist <plik>",
+            );
+            eprintln!(
+                "       [--method GET|POST|HEAD] [--status 200,403] [--threads N]",
             );
             std::process::exit(2);
         }

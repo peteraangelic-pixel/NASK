@@ -10,7 +10,7 @@
 // UWAGA: Używaj TYLKO przeciwko domenom w scope programu na hack.cert.pl.
 
 use std::env;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
 use std::net::lookup_host;
 use std::time::Instant;

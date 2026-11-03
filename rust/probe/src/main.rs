@@ -59,8 +59,14 @@ fn available_parallelism() -> usize {
 fn probe_one(url: &str, method: &str) -> Option<(u16, String, String)> {
     let timeout = Duration::from_secs(8);
     let response = match method {
-        "GET" => ureq::get(url).timeout_connect(timeout).call().ok()?,
-        "HEAD" => ureq::head(url).timeout_connect(timeout).call().ok()?,
+        "GET" => ureq::get(url)
+            .timeout_connect(timeout)
+            .call()
+            .ok()?,
+        "HEAD" => ureq::head(url)
+            .timeout_connect(timeout)
+            .call()
+            .ok()?,
         _ => return None,
     };
 
