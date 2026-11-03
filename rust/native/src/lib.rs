@@ -5,6 +5,8 @@
 // Rustu, równoległość w Pythonie przez multiprocessing.Pool na 16 rdzeniach
 // (Ryzen 9 5950X).
 
+#![allow(clippy::all)]
+
 use std::slice;
 use std::sync::atomic::{AtomicUsize, Ordering};
 

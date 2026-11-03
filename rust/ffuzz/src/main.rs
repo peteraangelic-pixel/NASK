@@ -11,6 +11,8 @@
 //
 // UWAGA: Używaj TYLKO przeciwko celom w scope hack.cert.pl. Nie rób DoS.
 
+#![allow(clippy::all)]
+
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};

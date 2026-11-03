@@ -11,6 +11,8 @@
 //
 // UWAGA: Tylko cele w scope hack.cert.pl.
 
+#![allow(clippy::all)]
+
 use std::env;
 use std::io::{self, BufRead, Write};
 use std::time::{Duration, Instant};

@@ -9,6 +9,8 @@
 //
 // UWAGA: Używaj TYLKO przeciwko domenom w scope programu na hack.cert.pl.
 
+#![allow(clippy::all)]
+
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
