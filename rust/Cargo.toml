@@ -4,6 +4,7 @@ members = [
     "subenum",
     "ffuzz",
     "probe",
+    "takeover",
 ]
 
 [workspace.dependencies]
