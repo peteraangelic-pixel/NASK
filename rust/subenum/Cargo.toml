@@ -1,0 +1,8 @@
+[package]
+name = "subenum"
+description = "Równoległe wyliczanie subdomen i rozwiązywanie DNS (Rayon) — recon dla programów bug bounty hack.cert.pl"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rayon = { workspace = true }

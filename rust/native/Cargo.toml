@@ -1,0 +1,12 @@
+[package]
+name = "nask_native"
+description = "Szybka natywna biblioteka wywoływana z Pythona przez FFI (ctypes)"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "nask_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+rayon = "1.10"

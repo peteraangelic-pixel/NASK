@@ -1,0 +1,50 @@
+name: Skan recon (ręczny workflow)
+
+# ⚠️ UWAGA ⚠️
+# Ten workflow służy TYLKO do recon przeciwko celom, które znajdują się w scope
+# programu bug bounty na https://hack.cert.pl/ (NASK, CERT Polska, Gov.pl, mSzyfr,
+# Gmina Władysławowo). Skanowanie innych celów jest niedozwolone i może być
+# nielegalne. Uruchamiaj tylko na własną odpowiedzialność i tylko w ramach
+# zakresu programu. Agent nie wykonuje aktywnych ataków.
+
+on:
+  workflow_dispatch:
+    inputs:
+      domain:
+        description: "Domena w scope (np. nask.pl, gov.pl)"
+        required: true
+        default: "nask.pl"
+      wordlist:
+        description: "Ścieżka do słownika subdomen w repo (np. rust/wordlists/small.txt)"
+        required: false
+        default: ""
+      threads:
+        description: "Liczba wątków Rayon"
+        required: false
+        default: "16"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Zainstaluj Rusta
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Kompiluj narzędzia
+        run: cargo build --release
+        working-directory: rust
+
+      - name: Uruchom subenum (wykrywanie subdomen)
+        run: |
+          WLIST="${{ github.event.inputs.wordlist }}"
+          if [ -z "$WLIST" ]; then
+            # fallback: wbudowana mini lista (tylko do testu działania narzędzia)
+            echo -e "www\nmail\ndev\ntest\nstaging\napi\nvpn\nowa\nauto\ndns" > /tmp/subs.txt
+            WLIST=/tmp/subs.txt
+          fi
+          ./target/release/subenum "${{ github.event.inputs.domain }}" "$WLIST" /tmp/subresults.txt
+          echo "--- wyniki ---"
+          cat /tmp/subresults.txt || true
+        working-directory: rust

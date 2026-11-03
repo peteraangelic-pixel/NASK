@@ -1,0 +1,20 @@
+# Rust
+/target/
+/**/*.rs.bak
+
+# Python
+__pycache__/
+*.py[c]
+*.pyc
+*.pyo
+.env
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / reports
+*.log
+reports/

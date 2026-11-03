@@ -1,0 +1,89 @@
+// subenum — szybkie wyliczanie subdomen z risolowaniem DNS.
+// Użycie: subenum <domena> <plik_slownik> [plik_wyjsciowy]
+//
+// Przykład:
+//   subenum nask.pl subs.txt wyniki.txt
+//
+// Wszystkie zapytania DNS lecą równolegle na wszystkich rdzeniach dzięki Rayon.
+// Idealne na Ryzen 9 5950X (16 rdzeni / 32 wątki).
+//
+// UWAGA: Używaj TYLKO przeciwko domenom w scope programu na hack.cert.pl.
+
+use std::env;
+use std::fs::{self, File};
+use std::io::{self, BufRead, BufReader, Write};
+use std::net::lookup_host;
+use std::time::Instant;
+
+use rayon::prelude::*;
+
+fn read_wordlist(path: &str) -> io::Result<Vec<String>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    Ok(reader
+        .lines()
+        .filter_map(|line| line.ok())
+        .filter(|line| !line.trim().is_empty())
+        .map(|line| line.trim().to_string())
+        .collect())
+}
+
+fn resolve(host: &str) -> Option<String> {
+    // lookup_host blokuje wątek — Rayon obsługuje to poprawnie na puli wątków.
+    match lookup_host(host) {
+        Ok(mut addrs) => addrs.next().map(|addr| addr.to_string()),
+        Err(_) => None,
+    }
+}
+
+fn main() -> io::Result<()> {
+    let args: Vec<String> = env::args().collect();
+    if args.len() < 3 {
+        eprintln!("użycie: subenum <domena> <plik_slownik> [plik_wyjsciowy]");
+        eprintln!("przykład: subenum nask.pl subdomains.txt results.txt");
+        std::process::exit(2);
+    }
+
+    let domain = &args[1];
+    let wordlist_path = &args[2];
+    let output_path = args.get(3).map(|s| s.as_str());
+
+    let start = Instant::now();
+    let words = read_wordlist(wordlist_path)?;
+    eprintln!("[+] słownik: {} wpisów, domena: {}", words.len(), domain);
+
+    let hosts: Vec<String> = words
+        .iter()
+        .map(|w| format!("{}.{}", w, domain))
+        .collect();
+
+    // Równoległe risolowanie DNS na wszystkich rdzeniach (Rayon).
+    let results: Vec<(String, String)> = hosts
+        .par_iter()
+        .filter_map(|host| match resolve(host) {
+            Some(ip) => Some((host.clone(), ip)),
+            None => None,
+        })
+        .collect();
+
+    let mut results_sorted = results;
+    results_sorted.sort_by(|a, b| a.0.cmp(&b.0));
+
+    let mut out: Box<dyn Write> = match output_path {
+        Some(path) => Box::new(File::create(path)?),
+        None => Box::new(io::stdout()),
+    };
+
+    for (host, ip) in &results_sorted {
+        writeln!(out, "{} {}", host, ip)?;
+    }
+
+    let elapsed = start.elapsed();
+    eprintln!(
+        "[+] znaleziono {}/{} subdomen w {:?}",
+        results_sorted.len(),
+        hosts.len(),
+        elapsed
+    );
+    Ok(())
+}

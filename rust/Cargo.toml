@@ -1,0 +1,11 @@
+[workspace]
+resolver = "2"
+members = [
+    "subenum",
+    "ffuzz",
+    "probe",
+]
+
+[workspace.dependencies]
+rayon = "1.10"
+ureq = { version = "2.11", default-features = false }
