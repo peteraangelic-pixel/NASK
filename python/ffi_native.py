@@ -61,8 +61,8 @@ def main() -> int:
     # Przykładowe dane: duża lista plików (symulacja pobranych plików JS/odpowiedzi HTTP).
     corpus: List[bytes] = [
         b"/api/v1/users/123 /api/v2/messages secret=AKIAIOSFODNN7EXAMPLE jwt=eyJ..." * 5000,
-        b"https://nask.pl/admin/config TODO: usunąć klucz AIzaSyC..." * 5000,
-        b"zwykła zawartość bez wzorców" * 5000,
+        b"https://nask.pl/admin/config TODO: usunac klucz AIzaSyC..." * 5000,
+        b"zwykla zawartosc bez wzorcow" * 5000,
     ] * 20
 
     pattern = b"/api/v1/"
