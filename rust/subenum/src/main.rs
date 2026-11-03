@@ -14,7 +14,7 @@
 use std::env;
 use std::fs::File;
 use std::io::{self, BufRead, BufReader, Write};
-use std::net::lookup_host;
+use std::net::ToSocketAddrs;
 use std::time::Instant;
 
 use rayon::prelude::*;
@@ -31,11 +31,12 @@ fn read_wordlist(path: &str) -> io::Result<Vec<String>> {
 }
 
 fn resolve(host: &str) -> Option<String> {
-    // lookup_host blokuje wątek — Rayon obsługuje to poprawnie na puli wątków.
-    match lookup_host(host) {
-        Ok(mut addrs) => addrs.next().map(|addr| addr.to_string()),
-        Err(_) => None,
-    }
+    // ToSocketAddrs blokuje wątek — Rayon obsługuje to poprawnie na puli wątków.
+    // Dodajemy port :80, bo to_socket_addrs wymaga adresu z portem.
+    (format!("{}:80", host)).to_socket_addrs()
+        .ok()?
+        .next()
+        .map(|addr| addr.ip().to_string())
 }
 
 fn main() -> io::Result<()> {
