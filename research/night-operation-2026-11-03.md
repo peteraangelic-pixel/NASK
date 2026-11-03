@@ -36,4 +36,23 @@ Podgląd operacji bez ruchu sieciowego:
 python tools/recon/python/night.py --request tools/recon/night-request.json
 ```
 
-Status i identyfikator rzeczywistego przebiegu zostaną dopisane po uruchomieniu.
+## Wynik rzeczywistego przebiegu
+
+[Operacja 41734282345](https://github.com/peteraangelic-pixel/NASK/actions/runs/41734282345) zakończyła się powodzeniem technicznym w 2 minuty 21 sekund na commicie `93f84ba482747d92e0e9d528923cde0a278773bc`. Status danych: `completed_with_skips`, czyli częściowe pokrycie. Operacja jest zakończona; nie działa nocna pętla powtórzeń ani monitor gałęzi.
+
+[CI tego samego commitu](https://github.com/peteraangelic-pixel/NASK/actions/runs/41734282374) sprawdziło Linux i Windows: 19 testów Pythona, 8 testów Rusta oraz rzeczywiste FFI. Przed uruchomieniem operacji przeszło także [CI wersji kodu c3d0ea2](https://github.com/peteraangelic-pixel/NASK/actions/runs/41733997190).
+
+| Etap | Faktycznie wysłane żądania |
+| --- | ---: |
+| Pobranie i porównanie regulaminów | 4 |
+| Pierwszy adres kontrolny | 24 |
+| Drugi adres kontrolny | 18 |
+| Git HEAD | 18 |
+| Plik środowiska | 11 |
+| Razem | 75 |
+
+Wszystkie cztery regulaminy miały zgodne hashe. Do celów wysłano 71 żądań i otrzymano 68 odpowiedzi HTTP; trzy odczyty zakończyły się błędem transportu. W zapisanych 96 rekordach 25 prób oznaczono jako pominięte po wcześniejszym problemie na hoście. Nie wykonano trzech przekierowań; dziewięć odpowiedzi miało status 403. Nie stwierdzono 429. Najmniejszy odstęp rozpoczęcia żądań do celów wynosił 1,000082 s.
+
+Zweryfikowano hashe 56 zachowanych treści. Z nich 20 dotyczyło dwóch badanych typów plików: 9 otrzymało wynik negatywny, a 11 nierozstrzygający, m.in. ze względu na brak HTTP 200 albo niepełne kontrole. Inne próby plików nie dały treści do klasyfikacji, np. po blokadzie 403. **Kandydatów do oceny wpływu: 0. Potwierdzonych podatności: 0.** To nie jest dowód braku luk, ani pełne sprawdzenie wszystkich zaplanowanych ścieżek.
+
+Zaszyfrowany artefakt pobrano i odszyfrowano lokalnie, potwierdzono commit źródłowy, hash manifestu i treści. Dowody: ignorowany `private/night-41734282345/`, w tym `download/campaign.enc`, `decrypted/run/receipt.json` i `verification.json`. Do publicznego repo trafiły wyłącznie kod, plan oraz to podsumowanie.

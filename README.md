@@ -17,6 +17,8 @@ Rekomendowany pierwszy kierunek: **program NASK**, następnie **CERT Polska**. R
 
 Wykonano analizę publicznych zasad oraz pilot kolektora przez Actions: 48 odczytów publicznych stron i wskazanych skryptów, 24 hosty w czterech programach. To rozpoznanie powierzchni aplikacji; potwierdzonych podatności: **0**. Szczegóły, ograniczenia i identyfikatory przebiegów znajdują się w raporcie pilota.
 
+Przebieg nocny wykonał dodatkowo 71 odczytów do celów oraz cztery weryfikacje regulaminów, z kontrolami catch-all i badaniem dwóch formatów ekspozycji plików. Kandydatów: 0, pokrycie częściowe po blokadach i błędach. Wynik i ograniczenia opisuje raport operacji nocnej; zadanie jest zakończone.
+
 NASKLab implementuje kolejkę rozpoznania wielu programów i analizę lokalną w Rust/Rayon wywoływaną z Pythona. Część sieciowa ma wspólny ogranicznik tempa. Kontrolowane rozpoznanie i analiza wskazują powierzchnie do badań; nie stanowią automatycznego potwierdzenia podatności. Starsze plany w `research/` opisują stan z momentu ich sporządzenia.
 
 Dowody, sesje, dane kont i nieujawnione zgłoszenia przechowujemy lokalnie w ignorowanych katalogach `private/`, `evidence/`, `captures/` i `reports/`. `.gitignore` nie jest granicą bezpieczeństwa: przed ewentualnym pushem trzeba sprawdzić zawartość zmian. Publiczne repo ani logi Actions nie służą do przechowywania nieujawnionych luk.
