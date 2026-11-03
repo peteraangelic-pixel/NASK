@@ -39,6 +39,8 @@ On Windows the library is `tools/recon/target/release/nasklab.dll`. GitHub CI bu
 
 `analysis.json` preserves source URLs and hashes. Its score prioritizes application surfaces, not exploitability or expected money. A matching identifier is masked and remains unconfirmed. Route literals can themselves contain information, so treat the entire result as private. A route seen in JavaScript does not authorize probing a different host or prove the route is live.
 
+Analysis schema v2 distinguishes an explicit file control from a generic FormData mention. Recognizable browser-support scripts receive no priority points; ordinary static/navigation routes do not inflate the score. These are conservative triage heuristics: bundled code can still contain inactive controls, and filename hints do not reliably identify every vendor bundle.
+
 ## Verification
 
 ```sh

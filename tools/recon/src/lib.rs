@@ -11,6 +11,10 @@ pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
     }
     let routes = Regex::new(r#"["']((?:https?://|/)[^"'\s<>]{1,160})["']"#).unwrap();
     let aws = Regex::new(r"\bAKIA[0-9A-Z]{16}\b").unwrap();
+    let file_control = Regex::new(r#"(?i)\btype["']?\s*(?:=|:)\s*["']file["']"#).unwrap();
+    let password_control = Regex::new(r#"(?i)\btype["']?\s*(?:=|:)\s*["']password["']"#).unwrap();
+    let support_script = Regex::new(r"(?i)(?:^|[/._-])(?:modernizr|polyfills?|vendor|framework|webpack|runtime|react-dom)(?:[/._-]|$)").unwrap();
+    let api_route = Regex::new(r"(?i)/(?:api|graphql)(?:/|$|[?#])").unwrap();
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(threads)
         .build()
@@ -30,12 +34,13 @@ pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
                     .collect();
                 literals.sort();
                 literals.dedup();
-                let upload = lower.contains("type=\"file\"")
-                    || lower.contains("type:'file'")
-                    || lower.contains("type:\"file\"")
-                    || lower.contains("new formdata");
-                let auth =
-                    lower.contains("type=\"password\"") || lower.contains("type:\"password\"");
+                // Generic FormData support occurs in polyfills and is not an upload control.
+                // Even explicit controls remain surface hints, not proof of live functionality.
+                let upload = file_control.is_match(body);
+                let auth = password_control.is_match(body);
+                let multipart = lower.contains("formdata");
+                let support = support_script.is_match(doc["source_url"].as_str().unwrap_or(""));
+                let api_count = literals.iter().filter(|s| api_route.is_match(s)).count();
                 let forms = lower.matches("<form").count();
                 // An identifier pattern alone does not establish a secret or a vulnerability.
                 let indicators: Vec<Value> = aws
@@ -49,16 +54,19 @@ pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
                 let score = usize::from(upload) * 20
                     + usize::from(auth) * 15
                     + forms.min(3) * 5
-                    + literals.len().min(10);
+                    + api_count.min(10);
+                let score = if support { 0 } else { score };
                 json!({"source_url":doc["source_url"],"program":doc["program"],
                 "tier":doc["tier"],"sha256":doc["sha256"],"upload_surface":upload,
                 "authentication_surface":auth,"html_forms":forms,"route_literals":literals,
+                "multipart_capability_mention":multipart,"support_script_hint":support,
+                "api_route_literal_count":api_count,
                 "indicators":indicators,"triage_score":score,
                 "verdict":"surface_only_not_a_confirmed_vulnerability"})
             })
             .collect()
     });
-    Ok(json!({"schema_version":1,"documents":rows,"confirmed_vulnerabilities":0}))
+    Ok(json!({"schema_version":2,"documents":rows,"confirmed_vulnerabilities":0}))
 }
 
 fn output(value: Value) -> *mut c_char {
@@ -121,6 +129,23 @@ mod tests {
         assert!(!result.contains(&identifier));
         assert!(result.contains("[REDACTED]"));
         assert!(result.contains("https://a.invalid/a.js"));
+    }
+
+    #[test]
+    fn generic_browser_capability_is_not_an_application_upload() {
+        let input = json!([
+            {"source_url":"https://a.invalid/modernizr-custom.js", "body":"new FormData(); fetch('/api/capabilities')"},
+            {"source_url":"https://a.invalid/page.js", "body":"new FormData(); fetch('/static/image.png')"},
+            {"source_url":"https://a.invalid/", "body":"<form><input type = 'file'><input type=\"password\"></form>"}
+        ]).to_string();
+        let rows = analyze(&input, 2).unwrap()["documents"].clone();
+        assert_eq!(rows[0]["upload_surface"], false);
+        assert_eq!(rows[0]["multipart_capability_mention"], true);
+        assert_eq!(rows[0]["triage_score"], 0);
+        assert_eq!(rows[1]["triage_score"], 0);
+        assert_eq!(rows[2]["upload_surface"], true);
+        assert_eq!(rows[2]["authentication_surface"], true);
+        assert_eq!(rows[2]["triage_score"], 40);
     }
 
     #[test]

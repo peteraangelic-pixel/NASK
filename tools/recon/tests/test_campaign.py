@@ -45,6 +45,7 @@ class Campaign(unittest.TestCase):
                         campaign.run(request, library, public)
                 summary = json.loads((root / "private/public-summary.json").read_text())
                 self.assertFalse(summary["complete_root_records"])
+                self.assertEqual(summary["requests_issued"], len(root_rows))
                 data = evidence.decrypt((root / "private/campaign.enc").read_bytes(), private.read_bytes())
                 self.assertTrue(data.startswith(b"\x1f\x8b"))
 

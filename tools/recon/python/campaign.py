@@ -60,13 +60,13 @@ def run(request_file: Path, library: Path, recipient: Path):
     result = subprocess.run(args, check=False)
     receipt = {**identity, "batch_id": batch_id, "attempt": attempt, "collection_exit": result.returncode,
                "commit": os.environ.get("GITHUB_SHA"), "expected_roots": planned,
-               "started_targets": 0, "confirmed_vulnerabilities": 0}
+               "requests_issued": 0, "confirmed_vulnerabilities": 0}
     run_dir.mkdir(parents=True, exist_ok=True)
     log_file = run_dir / "requests.jsonl"
     rows = [json.loads(line) for line in log_file.read_text(encoding="utf-8").splitlines()] if log_file.exists() else []
     roots = [row["source_url"] for row in rows if row["source_url"] in planned]
     receipt["complete_root_records"] = len(roots) == len(set(roots)) == len(planned) and set(roots) == set(planned)
-    receipt["started_targets"] = sum(row["sequence"] is not None for row in rows)
+    receipt["requests_issued"] = sum(row["sequence"] is not None for row in rows)
     receipt["http_responses"] = sum(row["status"] > 0 for row in rows)
     receipt["transport_or_control_errors"] = sum(bool(row["error"]) for row in rows)
     if result.returncode == 0:
@@ -82,7 +82,7 @@ def run(request_file: Path, library: Path, recipient: Path):
     envelope = encrypt(archive.read_bytes(), recipient.read_bytes())
     (ROOT / "private/campaign.enc").write_bytes(envelope)
     summary = {key: receipt[key] for key in ["batch_id", "attempt", "collection_exit", "analysis_exit",
-              "complete_root_records", "started_targets", "http_responses", "transport_or_control_errors", "confirmed_vulnerabilities"]}
+              "complete_root_records", "requests_issued", "http_responses", "transport_or_control_errors", "confirmed_vulnerabilities"]}
     (ROOT / "private/public-summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print(json.dumps(summary))
     if result.returncode != 0 or receipt["analysis_exit"] != 0 or not receipt["complete_root_records"]:
