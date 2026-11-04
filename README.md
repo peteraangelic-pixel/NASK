@@ -4,7 +4,8 @@ Stan prac: 4 listopada 2026, edycje 11/2026. Repozytorium źródłowe: https://g
 
 Aktywny kierunek: **wyłącznie program NASK**, zgodnie z decyzją użytkownika z 4 listopada. Starsze analizy pozostałych programów zachowujemy jako materiały historyczne.
 
-- [Aktualny kierunek NASK i wykonana analiza lokalna](research/nask-focus-2026-11-04.md)
+- [Aktualny stan, ograniczenia i centralny indeks materiałów](research/AKTUALNY-STAN.md)
+- [Wykonana runda NASK i analiza lokalna](research/nask-focus-2026-11-04.md)
 - [Historyczne porównanie pięciu programów](research/porownanie-programow.md)
 - [Przegląd narzędzi Arena.ai i rozpoznanie dostępu](research/arena-review-2026-11-03.md)
 - [Aktualny następny etap po ocenie materiałów z Dysku](research/nastepny-etap-2026-11-03.md)
