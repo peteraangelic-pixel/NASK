@@ -30,6 +30,14 @@ The exclusive lock is `private/nasklab-network.lock`. If a process is killed, ve
 
 ## Local analysis with Rust FFI
 
+The current research focus is NASK only. `python/corpus.py` analyzes a private,
+hash-verified inventory with exact NASK origins and no network access. It keeps
+duplicate provenance and deduplicates by origin plus hash, not hash alone.
+Native `client_contracts` records static method/path hints, byte offsets and query
+parameter names with values omitted. It does not resolve full AST, lexical scope,
+imports or dynamic wrappers, or prove live access or a vulnerability. Keep the
+whole analysis private: existing `route_literals` can still contain raw literals.
+
 ```sh
 cargo build --locked --release --manifest-path tools/recon/Cargo.toml
 python tools/recon/python/nasklab.py analyze --run-dir private/runs/first-pass --library tools/recon/target/release/libnasklab.so --threads 16

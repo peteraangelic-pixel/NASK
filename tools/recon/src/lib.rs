@@ -3,6 +3,7 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde_json::{json, Value};
 use std::ffi::{c_char, CString};
+mod contracts;
 mod exposure;
 
 pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
@@ -16,6 +17,7 @@ pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
     let password_control = Regex::new(r#"(?i)\btype["']?\s*(?:=|:)\s*["']password["']"#).unwrap();
     let support_script = Regex::new(r"(?i)(?:^|[/._-])(?:modernizr|polyfills?|vendor|framework|webpack|runtime|react-dom)(?:[/._-]|$)").unwrap();
     let api_route = Regex::new(r"(?i)/(?:api|graphql)(?:/|$|[?#])").unwrap();
+    let contracts = contracts::Rules::new();
     let pool = rayon::ThreadPoolBuilder::new()
         .num_threads(threads)
         .build()
@@ -66,6 +68,8 @@ pub fn analyze(input: &str, threads: usize) -> Result<Value, String> {
                 "file_control_mention":file_mention,"password_control_mention":password_mention,
                 "api_route_literal_count":api_count,
                 "indicators":indicators,"triage_score":score,"exposure_review":exposure::review(doc,&documents),
+                "origin":doc["origin"],"source_attribution":doc["source_attribution"],
+                "client_contracts":contracts.review(body),
                 "verdict":"surface_only_not_a_confirmed_vulnerability"})
             })
             .collect()

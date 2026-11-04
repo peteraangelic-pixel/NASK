@@ -1,10 +1,11 @@
 # NASK: badania programów Bug Bounty
 
-Stan rozpoznania: 3 listopada 2026, edycje 11/2026. Repozytorium źródłowe: https://github.com/peteraangelic-pixel/NASK (publiczne).
+Stan prac: 4 listopada 2026, edycje 11/2026. Repozytorium źródłowe: https://github.com/peteraangelic-pixel/NASK (publiczne).
 
-Rekomendowany pierwszy kierunek: **program NASK**, następnie **CERT Polska**. Rekomendacja wynika z regulaminów i zakresów, a nie z potwierdzonych podatności ani zmierzonej trudności.
+Aktywny kierunek: **wyłącznie program NASK**, zgodnie z decyzją użytkownika z 4 listopada. Starsze analizy pozostałych programów zachowujemy jako materiały historyczne.
 
-- [Porównanie pięciu programów i plan pierwszego etapu](research/porownanie-programow.md)
+- [Aktualny kierunek NASK i wykonana analiza lokalna](research/nask-focus-2026-11-04.md)
+- [Historyczne porównanie pięciu programów](research/porownanie-programow.md)
 - [Przegląd narzędzi Arena.ai i rozpoznanie dostępu](research/arena-review-2026-11-03.md)
 - [Aktualny następny etap po ocenie materiałów z Dysku](research/nastepny-etap-2026-11-03.md)
 - [NASKLab: Python FFI + Rust/Rayon, kolejka wielu programów](tools/recon/README.md)
