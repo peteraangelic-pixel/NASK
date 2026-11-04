@@ -18,3 +18,9 @@ Thumbs.db
 # Logs / reports
 *.log
 reports/
+
+# Prywatne zrzuty HAR i raporty narzędzi — nigdy nie commitujemy danych sesji ani celów
+nask-lab/**/private/
+nask-lab/**/*.har
+nask-lab/**/report.*
+nask-lab/**/reports/
