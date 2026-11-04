@@ -8,14 +8,17 @@ Aktywny program: **NASK, edycja 11/2026**. Pozostałe programy nie są bieżąc�
 
 Operacja dalszego rozpoznawania tras HIVE, kolejnego pobierania modułów i wynikających z tej mapy prób pozostaje wstrzymana na prośbę użytkownika. Dokładna przyczyna komunikatu platformy nie została udostępniona w logu. Sama kolejność zdarzeń nie dowodzi wyzwalacza. Wznowienie projektu nie oznacza ponawiania tej operacji w innym interfejsie.
 
-Ostatnia runda była lokalnym audytem zapisanych źródeł innego fragmentu zakresu NASK, bez nowych żądań do celów.
+Po audycie lokalnym wykonano ograniczoną kontrolę zwykłego przepływu publicznego katalogu oraz próbę publicznego wyszukiwania w innym serwisie NASK. HIVE nie było ponawiane.
 
 ## Wyniki i kompletność
 
 - Potwierdzone podatności: **0**. Nie wysłano zgłoszenia podatności.
 - Baza analizy: 110 obserwacji, 89 dokumentów, 8 159 235 B, 21 powtórzeń zachowanych w pochodzeniu.
 - Działający analizator Rust/Rayon + Python FFI: commit `8fc3191`; lokalne kontrole Windows zaliczone, bez nowego wyniku CI dla tego commita.
-- Ostatni audyt: cztery przepływy w jednym zapisanym skrypcie klienta; dziewięć lokalizatorów źródłowych i osiem rozliczonych wystąpień właściwości renderowania HTML. Nie jest to pełny audyt hosta ani ocena backendu.
+- Audyt statyczny: cztery przepływy w jednym zapisanym skrypcie klienta; dziewięć lokalizatorów źródłowych i osiem rozliczonych wystąpień właściwości renderowania HTML. Nie jest to pełny audyt hosta ani ocena backendu.
+- Kontrola katalogu: jeden zwykły POST zwrócił HTTP 200 z typem HTML zamiast JSON; pozostałe trzy przypadki wstrzymano. Brak poprawnego baseline JSON, bez odczytu treści tej odpowiedzi.
+- Kontrola wyszukiwania: jedna próba zakończona błędem transportu bez odpowiedzi HTTP; zapytania kontrolnego nie wykonano. Nie jest to dowód błędu aplikacji.
+- Narzędzie przeglądarki zgłosiło niedostępność hosta. Oczekujemy jedynie informacji użytkownika, czy katalog działa w zwykłym widoku. Żaden z powyższych wyników nie potwierdza przyczyny wcześniejszej blokady OpenAI.
 - Odróżniamy: kontrakt z kodu klienta, obserwację odpowiedzi, kontrolę własności zasobu oraz powtarzalny dowód skutku. Te poziomy nie są zamienne.
 
 ## Gdzie są materiały
@@ -24,6 +27,7 @@ Ostatnia runda była lokalnym audytem zapisanych źródeł innego fragmentu zakr
 | --- | --- |
 | Wykonana runda Rust/FFI i korpus | `private/nask-focus-2026-11-04/REPORT.md` |
 | Nowy audyt przepływów i rejestr przypadków | `private/nask-dns-review-2026-11-04/REVIEW.md`, `case-ledger.json`, `checks.json` |
+| Kontrole zwykłych odczytów i zatrzymania | `private/nask-dns-baseline-2026-11-04/REVIEW.md`, `receipt.json`, `science-search/REVIEW.md` |
 | Ocena gałęzi, Drive i korekty twierdzeń | `private/refresh-2026-11-04-1136/REVIEW.md`, `ADOPTION.md`, `claim-ledger.json` |
 | Diagnoza dostępnego błędu platformy | `private/nask-focus-2026-11-04/interface-block-latest.json` |
 | Przekazanie do CLI | `private/CLI-HANDOFF.md` |
