@@ -21,6 +21,9 @@ Po audycie lokalnym wykonano ograniczoną kontrolę zwykłego przepływu publicz
 - W poprzedniej rundzie narzędzie przeglądarki było niedostępne. 5 listopada potwierdzono w UI zmianę strony katalogu, odwrotne sortowanie i filtr „Polska” (10 widocznych rekordów po zakończeniu odpowiedzi). Nie przechwycono ruchu, więc wcześniejsza odpowiedź HTML skryptu pozostaje niewyjaśniona.
 - Zwykłe wyszukiwanie „NASK” w science.nask.pl wyświetliło 10 publicznych wyników na pierwszej z sześciu stron. To działający punkt odniesienia, nie wynik testu podatności.
 - Dalszą rundę przerwał komunikat zabezpieczenia platformy o 10:12:15 CET. Ostatnią ukończoną operacją był odczyt dokumentacji możliwości przeglądarki; nie rozpoczęto zbierania zasobów. Szczegółowa przyczyna nie została ujawniona (`additionalDetails: null`). Zapis i szkic diagnostyczny zachowano lokalnie, bez wysyłki i bez ponawiania tej ścieżki w innym narzędziu.
+- Po wznowieniu, na wyraźne polecenie użytkownika, wysłano opis podejrzanego fałszywego wskazania do OpenAI. Odpowiedź metody `feedback/upload` potwierdziła przyjęcie. Podano kontekst konkursu NASK/CERT Polska i systemów administracji państwowej. Nie dołączono rozmowy, logów ani materiałów badawczych. Potwierdzenie pozostaje prywatne; przyjęcie zgłoszenia nie oznacza zmiany uprawnień modelu.
+- Wykonano zwykłe pobranie publicznego materiału ECSM z bezpiecznymiesiac.pl: prawidłowy PNG 1199×469. Osobny GET tego samego opublikowanego linku z wyłączonymi przekierowaniami zatrzymał się na HTTP 308. Wynik nie potwierdza podatności; nie powtarzano wcześniejszych wariantów ścieżek ani nie uznawano starej długości odpowiedzi za bieżący dowód.
+- Oceniono trzy przypadki: HTML kontaktu DNS (brak kontrolowanego źródła zapisu), pliki ECSM (publiczny plik bez wykazanego przekroczenia granicy), formularz dezinformacji (potrzebny uzgodniony test na własnych danych przed utworzeniem sprawy). Przygotowano niewysłany szkic uzgodnienia; nie jest raportem podatności.
 - Odróżniamy: kontrakt z kodu klienta, obserwację odpowiedzi, kontrolę własności zasobu oraz powtarzalny dowód skutku. Te poziomy nie są zamienne.
 
 ## Gdzie są materiały
@@ -35,6 +38,7 @@ Po audycie lokalnym wykonano ograniczoną kontrolę zwykłego przepływu publicz
 | Przekazanie do CLI | `private/CLI-HANDOFF.md` |
 | Aktualny plan i sprawdzenie gotowości przeglądarki | `research/PLAN-2026-11-05.md`, `private/nask-plan-2026-11-05/browser-observation.json` |
 | Wykonane interakcje UI i nowe przerwanie | `private/nask-ui-session-2026-11-05/REVIEW.md`, `dns-ui-observations.json`, `science-ui-observations.json`, `interface-block.json`, `FEEDBACK-DRAFT.txt` |
+| Wysłana opinia do OpenAI i wznowiona runda plików ECSM | `private/nask-ui-session-2026-11-05/feedback-upload-receipt.json`, `private/nask-download-review-2026-11-05/REVIEW.md`, `FORM-TEST-COORDINATION-DRAFT.md` |
 
 Pliki `private/` są lokalne i nie wchodzą do publicznego repozytorium. Kopia samego GitHuba nie zawiera całego stanu badań.
 
