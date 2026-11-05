@@ -1,6 +1,6 @@
 # Aktualny stan projektu NASK
 
-Stan: 4 listopada 2026. Ten plik wskazuje bieżącą interpretację; starsze raporty pozostają zapisem historycznym.
+Stan: 5 listopada 2026. Ten plik wskazuje bieżącą interpretację; starsze raporty pozostają zapisem historycznym. Bieżąca kolejność: [plan rundy z 5 listopada](PLAN-2026-11-05.md).
 
 ## Zakres i tryb
 
@@ -18,7 +18,7 @@ Po audycie lokalnym wykonano ograniczoną kontrolę zwykłego przepływu publicz
 - Audyt statyczny: cztery przepływy w jednym zapisanym skrypcie klienta; dziewięć lokalizatorów źródłowych i osiem rozliczonych wystąpień właściwości renderowania HTML. Nie jest to pełny audyt hosta ani ocena backendu.
 - Kontrola katalogu: jeden zwykły POST zwrócił HTTP 200 z typem HTML zamiast JSON; pozostałe trzy przypadki wstrzymano. Brak poprawnego baseline JSON, bez odczytu treści tej odpowiedzi.
 - Kontrola wyszukiwania: jedna próba zakończona błędem transportu bez odpowiedzi HTTP; zapytania kontrolnego nie wykonano. Nie jest to dowód błędu aplikacji.
-- Narzędzie przeglądarki zgłosiło niedostępność hosta. Oczekujemy jedynie informacji użytkownika, czy katalog działa w zwykłym widoku. Żaden z powyższych wyników nie potwierdza przyczyny wcześniejszej blokady OpenAI.
+- W poprzedniej rundzie narzędzie przeglądarki było niedostępne. 5 listopada użytkownik potwierdził działanie katalogu, a następnie agent również zobaczył tabelę, filtry i paginację przez działającą integrację. Nie wyjaśnia to jeszcze wcześniejszej odpowiedzi HTML ani przyczyny blokady OpenAI.
 - Odróżniamy: kontrakt z kodu klienta, obserwację odpowiedzi, kontrolę własności zasobu oraz powtarzalny dowód skutku. Te poziomy nie są zamienne.
 
 ## Gdzie są materiały
@@ -31,6 +31,7 @@ Po audycie lokalnym wykonano ograniczoną kontrolę zwykłego przepływu publicz
 | Ocena gałęzi, Drive i korekty twierdzeń | `private/refresh-2026-11-04-1136/REVIEW.md`, `ADOPTION.md`, `claim-ledger.json` |
 | Diagnoza dostępnego błędu platformy | `private/nask-focus-2026-11-04/interface-block-latest.json` |
 | Przekazanie do CLI | `private/CLI-HANDOFF.md` |
+| Aktualny plan i sprawdzenie gotowości przeglądarki | `research/PLAN-2026-11-05.md`, `private/nask-plan-2026-11-05/browser-observation.json` |
 
 Pliki `private/` są lokalne i nie wchodzą do publicznego repozytorium. Kopia samego GitHuba nie zawiera całego stanu badań.
 
